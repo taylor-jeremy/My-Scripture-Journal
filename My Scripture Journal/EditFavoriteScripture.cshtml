@@ -1,0 +1,109 @@
+﻿@{
+	Layout = "~/_Layout.cshtml";
+	Page.Title = "Edit Favorite Scripture";
+
+	var book = "";
+	var chapter = "";
+	var verses = "";
+	var personalNotes = "";
+	var dateAdded = "";
+	var scriptureId = "";
+
+	if (!IsPost)
+	{
+		if (!Request.QueryString["ID"].IsEmpty() && Request.QueryString["ID"].IsInt())
+		{
+			scriptureId = Request.QueryString["ID"];
+			var db = Database.Open("WebPagesFavoriteScriptures");
+			var dbCommand = "SELECT * FROM FavoriteScriptures WHERE ID = @0";
+			var row = db.QuerySingle(dbCommand, scriptureId);
+
+			if (row != null)
+			{
+				book = row.Book;
+				chapter = row.Chapter;
+				verses = row.Verses;
+				personalNotes = row.personalNotes;
+				dateAdded = DateTime.Now.ToString("yyyy-MM-dd");
+			}
+			else
+			{
+				Validation.AddFormError("No scripture was selected.");
+				// If you are using a version of ASP.NET Web Pages 2 that's
+				// earlier than the RC release, comment out the preceding
+				// statement and uncomment the following one.
+				//ModelState.AddFormError("No scripture was selected.");
+			}
+		}
+		else
+		{
+			Validation.AddFormError("No scripture was selected.");
+			// If you are using a version of ASP.NET Web Pages 2 that's
+			// earlier than the RC release, comment out the preceding
+			// statement and uncomment the following one.
+			//ModelState.AddFormError("No scripture was selected.");
+		}
+	}
+
+	if (IsPost)
+	{
+		Validation.RequireField("book", "You must enter a book");
+		Validation.RequireField("chapter", "Chapter is required");
+		Validation.RequireField("verses", "Verse(s) is/are required");
+		Validation.RequireField("personalNotes", "Personal notes are required");
+		Validation.RequireField("dateAdded", "Date of entry is required");
+		Validation.RequireField("scriptureId", "No scripture ID was submitted!");
+
+		book = Request.Form["book"];
+		chapter = Request.Form["chapter"];
+		verses = Request.Form["verses"];
+		personalNotes = Request.Form["personalNotes"];
+		dateAdded = Request.Form["dateAdded"];
+		scriptureId = Request.Form["scriptureId"];
+
+		if (Validation.IsValid())
+		{
+			var db = Database.Open("WebPagesFavoriteScriptures");
+			var updateCommand = "UPDATE FavoriteScriptures SET Book=@0, Chapter=@1, Verses=@2, PersonalNotes=@3, dateAdded=@4 WHERE Id=@5";
+			db.Execute(updateCommand, book, chapter, verses, personalNotes, dateAdded, scriptureId);
+			Response.Redirect("~/FavoriteScriptures");
+		}
+	}
+}
+	<h2>Edit a Favorite Scripture</h2>
+	@Html.ValidationSummary()
+	<form method="post">
+		<fieldset>
+			<legend>Favorite Scripture Information</legend>
+
+			<p>
+				<label for="book">Book:</label>
+				<input type="text" name="book" value="@book" />
+			</p>
+
+			<p>
+				<label for="chapter">Chapter:</label>
+				<input type="text" name="chapter" value="@chapter" />
+			</p>
+
+			<p>
+				<label for="verses">Verse(s):</label>
+				<input type="text" name="verses" value="@verses" />
+			</p>
+
+			<p>
+				<label for="personalNotes">Personal Notes:</label>
+				<input class="readonly" type="text" name="personalNotes" value="@personalNotes" />
+			</p>
+
+			<p>
+				<label for="datedAdded">Date Submitted:</label>
+				<input class="readonly" type="text" name="dateAdded" value="@dateAdded" readonly />
+			</p>
+
+			<input type="hidden" name="scriptureId" value="@scriptureId" />
+
+			<p><input type="submit" name="buttonSubmit" value="Submit Changes" /></p>
+		</fieldset>
+	</form>
+	<p><a href="~/FavoriteScriptures">Return to favorite scriptures list</a></p>

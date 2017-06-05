@@ -1,0 +1,71 @@
+﻿@{
+	Layout = "~/_Layout.cshtml";
+	Page.Title = "Add Favorite Scripture";
+
+	Validation.RequireField("book", "You must enter a book title");
+	Validation.RequireField("chapter", "Chapter is required");
+	Validation.RequireField("verses", "Verse(s) is/are required");
+
+	var book = "";
+	var chapter = "";
+	var verses = "";
+	var personalNotes = "";
+	var dateAdded = DateTime.Now.ToString("yyyy-MM-dd");
+
+	if (IsPost)
+	{
+		if (Validation.IsValid())
+		{
+			book = Request.Form["book"];
+			chapter = Request.Form["chapter"];
+			verses = Request.Form["verses"];
+			personalNotes = Request.Form["personalNotes"];
+			dateAdded = Request.Form["dateAdded"];
+
+			var db = Database.Open("WebPagesFavoriteScriptures");
+			var insertCommand =
+				"INSERT INTO FavoriteScriptures (Book, Chapter, Verses, PersonalNotes, DateAdded) Values(@0, @1, @2, @3, @4)";
+			db.Execute(insertCommand, book, chapter, verses, personalNotes, dateAdded);
+			Response.Redirect("~/FavoriteScriptures");
+		}
+	}
+}
+	<h2>Add a Favorite Scripture</h2>
+	@Html.ValidationSummary()
+	<form method="post">
+		<fieldset>
+			<legend>Favorite Scripture Information</legend>
+			<p>
+				<label for="book">Book:</label>
+				<input type="text" name="book" value="@Request.Form["book"]" />
+				@Html.ValidationMessage("book")
+			</p>
+
+			<p>
+				<label for="chapter">Chapter:</label>
+				<input type="text" name="chapter" value="@Request.Form["chapter"]" />
+				@Html.ValidationMessage("chapter")
+			</p>
+
+			<p>
+				<label for="verses">Verse(s):</label>
+				<input type="text" name="verses" value="@Request.Form["verses"]" />
+				@Html.ValidationMessage("verses")
+			</p>
+
+			<p>
+				<label for="personalNotes">Personal Notes:</label>
+				<input type="text" name="personalNotes" value="@Request.Form["personalNotes"]" />
+				@Html.ValidationMessage("personalNotes")
+			</p>
+
+			<p>
+				<label for="dateAdded">Date Added:</label>
+				<input class="readonly" type="text" name="dateAdded" value="@dateAdded" readonly />
+				@Html.ValidationMessage("dateAdded")
+			</p>
+
+			<p><input type="submit" name="buttonSubmit" value="Add Scripture" /></p>
+		</fieldset>
+	</form>
+	<p><a href="~/FavoriteScriptures">Return to favorite scriptures list</a></p>

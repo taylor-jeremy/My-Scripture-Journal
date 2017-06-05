@@ -1,0 +1,57 @@
+﻿<!--Database won't open without the next line of code for some reason	-->
+@using WebMatrix.Data;
+@{
+	Layout = "~/_Layout.cshtml";
+	Page.Title = "Favorite Scriptures Journal";
+
+	var db = Database.Open("WebPagesFavoriteScriptures");
+	var selectCommand = "SELECT * FROM FavoriteScriptures";
+	var searchTerm = "";
+
+	if (!Request.QueryString["searchBook"].IsEmpty())
+	{
+		selectCommand = "SELECT * FROM FavoriteScriptures WHERE Book = @0";
+		searchTerm = Request.QueryString["searchBook"];
+	}
+
+	if (!Request.QueryString["searchNotes"].IsEmpty())
+	{
+		selectCommand = "SELECT * FROM FavoriteScriptures WHERE PersonalNotes LIKE @0";
+		searchTerm = "%" + Request.QueryString["searchNotes"] + "%";
+	}
+
+	var selectedData = db.Query(selectCommand, searchTerm);
+	var grid = new WebGrid(source: selectedData, defaultSort: "Book", rowsPerPage: 5);
+}
+	<h2>Favorite Scriptures</h2>
+	<form method="get">
+		<div>
+			<label for="searchBook">Book to look for:</label>
+			<input type="text" name="searchBook"
+				   value="@Request.QueryString["searchBook"]" />
+			<input type="Submit" value="Search Book" /><br />
+			(Leave blank to list all movies.)<br />
+		</div>
+		<div>
+			<label for="SearchNotes">Personal notes contain the following:</label>
+			<input type="text" name="searchNotes" value="@Request.QueryString["searchNotes"]" />
+			<input type="Submit" value="Search Notes" /><br />
+		</div>
+	</form>
+	<div>
+		@grid.GetHtml(
+		   tableStyle: "grid",
+		   headerStyle: "head",
+		   alternatingRowStyle: "alt",
+		   columns: grid.Columns(
+			   grid.Column(format: @<a href="~/EditFavoriteScripture?id=@item.ID">Edit</a>),
+			   grid.Column("Book"),
+			   grid.Column("Chapter", canSort: false),
+			   grid.Column("Verses", canSort: false),
+			   grid.Column("PersonalNotes", canSort: false),
+			   grid.Column("DateAdded"),
+			   grid.Column(format: @<a href="~/DeleteFavoriteScripture?id=@item.ID">Delete</a>)
+			)
+		)
+	</div>
+	<p><a href="~/AddFavoriteScripture">Add a favorite scripture</a></p>
